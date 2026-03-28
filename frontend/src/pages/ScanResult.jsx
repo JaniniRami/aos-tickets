@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 
-const baseURL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '/api'
+import { resolveApiBaseURL } from '../api'
 
 function formatTime(iso) {
   if (!iso) return '—'
@@ -27,7 +26,7 @@ export default function ScanResult() {
       setError('')
       try {
         const res = await axios.get(
-          `${baseURL}/scan/${encodeURIComponent(ticketId)}`,
+          `${resolveApiBaseURL()}/scan/${encodeURIComponent(ticketId)}`,
         )
         if (!cancelled) setData(res.data)
       } catch {

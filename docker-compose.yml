@@ -1,9 +1,8 @@
-# Full stack: Postgres + FastAPI + Vite build behind nginx (/api → backend).
+# Full stack: Postgres + FastAPI + Vite build behind nginx.
 # Usage: docker compose up --build
 #
-# VPS: open ports 80 + 443. HTTPS: https://46.225.168.215/  (API under /api/…)
-# TLS: create ./ssl/fullchain.pem and ./ssl/privkey.pem (e.g. copy from certbot).
-# HTTP on :80 redirects to HTTPS. BASE_URL must stay https:// for QR codes.
+# VPS: http://46.225.168.215/aos/  ·  API: /aos/api/…  ·  open port 80
+# BASE_URL must match public app URL (QR codes).
 
 services:
   db:
@@ -31,7 +30,7 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      BASE_URL: ${BASE_URL:-https://46.225.168.215}
+      BASE_URL: ${BASE_URL:-http://46.225.168.215/aos}
       EVENT_TIMEZONE: ${EVENT_TIMEZONE:-Asia/Amman}
       ADULT_TICKET_PRICE_JD: ${ADULT_TICKET_PRICE_JD:-3}
       KID_TICKET_PRICE_JD: ${KID_TICKET_PRICE_JD:-12}
@@ -45,9 +44,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend
 

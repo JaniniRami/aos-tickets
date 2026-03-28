@@ -7,7 +7,7 @@ import ScanResult from './pages/ScanResult'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<AdminLayout />}>

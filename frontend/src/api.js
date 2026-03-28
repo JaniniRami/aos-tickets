@@ -1,7 +1,14 @@
 import axios from 'axios'
 
-const baseURL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || '/api'
+/** Relative API prefix (e.g. /aos/api) for same-origin Docker/nginx and Vite dev. */
+export function resolveApiBaseURL() {
+  const override = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '')
+  if (override) return override
+  const appBase = String(import.meta.env.BASE_URL || '/').replace(/\/?$/, '')
+  return `${appBase}/api`
+}
+
+const baseURL = resolveApiBaseURL()
 
 export const api = axios.create({
   baseURL,
@@ -30,8 +37,8 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401 && getToken()) {
       setToken(null)
-      if (!window.location.pathname.startsWith('/scan')) {
-        window.location.assign('/login')
+      if (!window.location.pathname.includes('/scan/')) {
+        window.location.assign(`${import.meta.env.BASE_URL}login`)
       }
     }
     return Promise.reject(err)
