@@ -107,6 +107,12 @@ export default function ScanResult() {
               </span>
             </div>
             <div className="flex justify-between items-center">
+              <span className="text-sm text-[#030303]/50">Members</span>
+              <span className="text-sm font-bold text-[#030303] tabular-nums">
+                {data?.member_scanned ?? 0} / {data?.member_tickets ?? 0} scanned
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
               <span className="text-sm text-[#030303]/50">Kids</span>
               <span className="text-sm font-bold text-[#030303] tabular-nums">
                 {data?.kid_scanned ?? 0} / {data?.kid_tickets ?? 0} scanned

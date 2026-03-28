@@ -35,6 +35,7 @@ class TicketStatus(str, enum.Enum):
 
 class ScanTicketType(str, enum.Enum):
     adult = "adult"
+    member = "member"
     kid = "kid"
 
 
@@ -45,9 +46,13 @@ class Ticket(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(64), nullable=False)
     adult_tickets: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    member_tickets: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     kid_tickets: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     adult_price_jd: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=text("3")
+    )
+    member_price_jd: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("10")
     )
     kid_price_jd: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=text("12")

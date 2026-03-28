@@ -1,4 +1,4 @@
-"""Buyer order code (4-digit) and per-pass slot codes (unique per adult/kid slot)."""
+"""Buyer order code (4-digit) and per-pass slot codes (unique per pass slot)."""
 
 from __future__ import annotations
 
@@ -24,14 +24,24 @@ def parse_ticket_to_id(code: str) -> int:
 
 def make_slot_code(ticket_id: int, kind: str, ticket_index: int) -> str:
     """
-    Unique public ID for one pass (one adult or one kid slot).
+    Unique public ID for one pass.
     Not the buyer id — that is format_ticket_code(ticket_id).
-    kind: 'adult' or 'kid'  →  0000-A01, 0000-K02
+    kind: 'adult' | 'member' | 'kid'  →  0000-A01, 0000-M01, 0000-K02
     """
     order = format_ticket_code(ticket_id)
-    letter = "A" if kind == "adult" else "K"
+    if kind == "adult":
+        letter = "A"
+    elif kind == "member":
+        letter = "M"
+    else:
+        letter = "K"
     return f"{order}-{letter}{ticket_index:02d}".upper()
 
 
 def normalize_slot_code(raw: str) -> str:
     return str(raw).strip().upper()
+
+
+def scan_type_sort_order(kind: str) -> int:
+    """Stable ordering for passes: adult, then member, then kid."""
+    return {"adult": 0, "member": 1, "kid": 2}.get(kind, 9)

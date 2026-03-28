@@ -29,15 +29,21 @@ def export_registered(
             "phone",
             "status",
             "adult_tickets",
+            "member_tickets",
             "kid_tickets",
             "adult_price_jd",
+            "member_price_jd",
             "kid_price_jd",
             "total_due_jd",
             "created_at",
         ]
     )
     for t in tickets:
-        total_due = t.adult_tickets * t.adult_price_jd + t.kid_tickets * t.kid_price_jd
+        total_due = (
+            t.adult_tickets * t.adult_price_jd
+            + t.member_tickets * t.member_price_jd
+            + t.kid_tickets * t.kid_price_jd
+        )
         writer.writerow(
             [
                 t.id,
@@ -46,8 +52,10 @@ def export_registered(
                 t.phone,
                 t.status.value,
                 t.adult_tickets,
+                t.member_tickets,
                 t.kid_tickets,
                 t.adult_price_jd,
+                t.member_price_jd,
                 t.kid_price_jd,
                 total_due,
                 t.created_at.isoformat() if t.created_at else "",
@@ -88,11 +96,14 @@ def export_attended(
             "full_name",
             "phone",
             "adult_tickets",
+            "member_tickets",
             "kid_tickets",
             "adult_price_jd",
+            "member_price_jd",
             "kid_price_jd",
             "total_due_jd",
             "adult_scanned",
+            "member_scanned",
             "kid_scanned",
             "scan_times",
         ]
@@ -110,12 +121,19 @@ def export_attended(
         adult_scanned = sum(
             1 for s in scans if s.ticket_type == ScanTicketType.adult
         )
+        member_scanned = sum(
+            1 for s in scans if s.ticket_type == ScanTicketType.member
+        )
         kid_scanned = sum(1 for s in scans if s.ticket_type == ScanTicketType.kid)
         times = ";".join(
             s.scanned_at.isoformat() if s.scanned_at else ""
             for s in scans
         )
-        total_due = t.adult_tickets * t.adult_price_jd + t.kid_tickets * t.kid_price_jd
+        total_due = (
+            t.adult_tickets * t.adult_price_jd
+            + t.member_tickets * t.member_price_jd
+            + t.kid_tickets * t.kid_price_jd
+        )
         writer.writerow(
             [
                 t.id,
@@ -123,11 +141,14 @@ def export_attended(
                 t.full_name,
                 t.phone,
                 t.adult_tickets,
+                t.member_tickets,
                 t.kid_tickets,
                 t.adult_price_jd,
+                t.member_price_jd,
                 t.kid_price_jd,
                 total_due,
                 adult_scanned,
+                member_scanned,
                 kid_scanned,
                 times,
             ]

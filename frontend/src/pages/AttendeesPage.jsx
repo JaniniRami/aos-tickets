@@ -5,17 +5,19 @@ export default function AttendeesPage() {
   const attendees = liveStats?.attendees ?? []
   const insideTotal = Number(liveStats?.people_inside_today ?? 0)
   const insideAdults = Number(liveStats?.people_inside_today_adults ?? 0)
+  const insideMembers = Number(liveStats?.people_inside_today_members ?? 0)
   const insideKids = Number(liveStats?.people_inside_today_kids ?? 0)
 
   const insideCards = [
     { label: 'Inside total', value: insideTotal, accent: true },
     { label: 'Inside adults', value: insideAdults, accent: false },
+    { label: 'Inside members', value: insideMembers, accent: false },
     { label: 'Inside kids', value: insideKids, accent: false },
   ]
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {insideCards.map(({ label, value, accent }) => (
           <div
             key={label}
@@ -63,7 +65,8 @@ export default function AttendeesPage() {
               >
                 <span className="text-sm font-semibold text-[#030303]">{a.full_name}</span>
                 <span className="text-sm text-[#030303]/50">
-                  Adults {a.adult_scanned}/{a.adult_tickets} · Kids {a.kid_scanned}/{a.kid_tickets}
+                  Adults {a.adult_scanned}/{a.adult_tickets} · Members{' '}
+                  {a.member_scanned ?? 0}/{a.member_tickets ?? 0} · Kids {a.kid_scanned}/{a.kid_tickets}
                 </span>
                 <span className="text-xs text-[#030303]/30 w-full font-mono leading-relaxed">
                   {a.scan_timestamps.map((t) => new Date(t).toLocaleString()).join(' · ')}

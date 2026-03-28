@@ -87,8 +87,17 @@ def ensure_app_state_row() -> None:
         pass
 
 
+def ensure_scan_ticket_type_member() -> None:
+    """Add `member` to PostgreSQL enum for existing DBs (create_all does not alter enums)."""
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TYPE scan_ticket_type ADD VALUE 'member'"))
+    except Exception:
+        pass
+
+
 def ensure_ticket_price_columns() -> None:
-    """Add price columns to existing deployments (create_all does not alter tables)."""
+    """Add price / count columns to existing deployments (create_all does not alter tables)."""
     try:
         insp = inspect(engine)
         if not insp.has_table("tickets"):
@@ -102,6 +111,14 @@ def ensure_ticket_price_columns() -> None:
         if "kid_price_jd" not in cols:
             stmts.append(
                 "ALTER TABLE tickets ADD COLUMN kid_price_jd INTEGER NOT NULL DEFAULT 12"
+            )
+        if "member_tickets" not in cols:
+            stmts.append(
+                "ALTER TABLE tickets ADD COLUMN member_tickets INTEGER NOT NULL DEFAULT 0"
+            )
+        if "member_price_jd" not in cols:
+            stmts.append(
+                "ALTER TABLE tickets ADD COLUMN member_price_jd INTEGER NOT NULL DEFAULT 10"
             )
         if not stmts:
             return

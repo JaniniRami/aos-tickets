@@ -5,6 +5,7 @@ const initial = {
   full_name: '',
   phone: '',
   adult_tickets: 0,
+  member_tickets: 0,
   kid_tickets: 0,
 }
 
@@ -21,6 +22,7 @@ export default function AddTicketModal({
   onClose,
   onSaved,
   adultPriceJd = 3,
+  memberPriceJd = 10,
   kidPriceJd = 12,
   ticket = null,
 }) {
@@ -37,6 +39,7 @@ export default function AddTicketModal({
         full_name: ticket.full_name ?? '',
         phone: ticket.phone ?? '',
         adult_tickets: ticket.adult_tickets ?? 0,
+        member_tickets: ticket.member_tickets ?? 0,
         kid_tickets: ticket.kid_tickets ?? 0,
       })
     } else {
@@ -47,8 +50,10 @@ export default function AddTicketModal({
   if (!open) return null
 
   const adultsN = Number(form.adult_tickets) || 0
+  const membersN = Number(form.member_tickets) || 0
   const kidsN = Number(form.kid_tickets) || 0
-  const previewTotal = adultsN * adultPriceJd + kidsN * kidPriceJd
+  const previewTotal =
+    adultsN * adultPriceJd + membersN * memberPriceJd + kidsN * kidPriceJd
 
   function update(k, v) {
     setForm((f) => ({ ...f, [k]: v }))
@@ -58,15 +63,17 @@ export default function AddTicketModal({
     e.preventDefault()
     setErr('')
     const adults = Number(form.adult_tickets)
+    const members = Number(form.member_tickets)
     const kids = Number(form.kid_tickets)
-    if (adults === 0 && kids === 0) {
-      setErr('Add at least one adult or kid ticket.')
+    if (adults === 0 && members === 0 && kids === 0) {
+      setErr('Add at least one adult, member, or kid ticket.')
       return
     }
     const body = {
       full_name: form.full_name.trim(),
       phone: form.phone.trim(),
       adult_tickets: adults,
+      member_tickets: members,
       kid_tickets: kids,
     }
     setSaving(true)
@@ -139,7 +146,7 @@ export default function AddTicketModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-[#030303]/40 mb-1.5">
                 Adults{' '}
@@ -151,6 +158,19 @@ export default function AddTicketModal({
                 className="w-full rounded-xl border border-[#D4C9BE] bg-[#F1EFEC] px-4 py-2.5 text-sm text-[#030303] outline-none focus:ring-2 focus:ring-[#123458]/20 focus:border-[#123458] transition-all"
                 value={form.adult_tickets}
                 onChange={(e) => update('adult_tickets', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#030303]/40 mb-1.5">
+                Members{' '}
+                <span className="normal-case font-normal text-[#030303]/30">({memberPriceJd} JD ea.)</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                className="w-full rounded-xl border border-[#D4C9BE] bg-[#F1EFEC] px-4 py-2.5 text-sm text-[#030303] outline-none focus:ring-2 focus:ring-[#123458]/20 focus:border-[#123458] transition-all"
+                value={form.member_tickets}
+                onChange={(e) => update('member_tickets', e.target.value)}
               />
             </div>
             <div>

@@ -3,6 +3,7 @@ export default function StatsBar({ stats }) {
 
   const collected = Number(stats.total_collected_paid_jd ?? 0)
   const soldAdults = Number(stats.sold_adult_slots_paid ?? 0)
+  const soldMembers = Number(stats.sold_member_slots_paid ?? 0)
   const soldKids = Number(stats.sold_kid_slots_paid ?? 0)
   const soldTotal = Number(stats.sold_slots_total_paid ?? 0)
 
@@ -11,13 +12,19 @@ export default function StatsBar({ stats }) {
       label: 'Collected',
       value: `${collected.toLocaleString()} JD`,
       accent: true,
-      sub: 'Adult + kid totals, paid or sent orders',
+      sub: 'Adult + member + kid totals, paid or sent orders',
     },
     {
       label: 'Adults sold (paid)',
       value: soldAdults.toLocaleString(),
       accent: false,
       sub: 'Adult passes on paid orders',
+    },
+    {
+      label: 'Members sold (paid)',
+      value: soldMembers.toLocaleString(),
+      accent: false,
+      sub: 'Member passes on paid orders',
     },
     {
       label: 'Kids sold (paid)',
@@ -33,7 +40,7 @@ export default function StatsBar({ stats }) {
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-5">
       {cards.map(({ label, value, accent, sub }) => (
         <div
           key={label}

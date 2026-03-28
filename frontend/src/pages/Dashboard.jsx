@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [loadError, setLoadError] = useState('')
   const [pricing, setPricing] = useState({
     adult_price_jd: 3,
+    member_price_jd: 10,
     kid_price_jd: 12,
   })
 
@@ -179,6 +180,7 @@ export default function Dashboard() {
         }}
         ticket={editingTicket}
         adultPriceJd={editingTicket?.adult_price_jd ?? pricing.adult_price_jd}
+        memberPriceJd={editingTicket?.member_price_jd ?? pricing.member_price_jd}
         kidPriceJd={editingTicket?.kid_price_jd ?? pricing.kid_price_jd}
       />
     </>

@@ -44,6 +44,7 @@ def _build_stats(db: Session) -> DashboardStatsOut:
             func.coalesce(
                 func.sum(
                     Ticket.adult_tickets * Ticket.adult_price_jd
+                    + Ticket.member_tickets * Ticket.member_price_jd
                     + Ticket.kid_tickets * Ticket.kid_price_jd
                 ),
                 0,
@@ -57,11 +58,15 @@ def _build_stats(db: Session) -> DashboardStatsOut:
     paid_only = Ticket.status == TicketStatus.paid
     slots_row = db.query(
         func.coalesce(func.sum(Ticket.adult_tickets), 0),
+        func.coalesce(func.sum(Ticket.member_tickets), 0),
         func.coalesce(func.sum(Ticket.kid_tickets), 0),
     ).filter(paid_only).one()
     sold_adult_slots_paid = int(slots_row[0] or 0)
-    sold_kid_slots_paid = int(slots_row[1] or 0)
-    sold_slots_total_paid = sold_adult_slots_paid + sold_kid_slots_paid
+    sold_member_slots_paid = int(slots_row[1] or 0)
+    sold_kid_slots_paid = int(slots_row[2] or 0)
+    sold_slots_total_paid = (
+        sold_adult_slots_paid + sold_member_slots_paid + sold_kid_slots_paid
+    )
 
     today_local = datetime.now(ZoneInfo(settings.event_timezone)).date()
     inside_row = db.execute(
@@ -73,6 +78,10 @@ def _build_stats(db: Session) -> DashboardStatsOut:
                     SUM(CASE WHEN ticket_type::text = 'adult' THEN 1 ELSE 0 END),
                     0
                 )::int AS adults,
+                COALESCE(
+                    SUM(CASE WHEN ticket_type::text = 'member' THEN 1 ELSE 0 END),
+                    0
+                )::int AS members,
                 COALESCE(
                     SUM(CASE WHEN ticket_type::text = 'kid' THEN 1 ELSE 0 END),
                     0
@@ -87,6 +96,7 @@ def _build_stats(db: Session) -> DashboardStatsOut:
     ).one()
     people_inside_today = int(inside_row.total or 0)
     people_inside_today_adults = int(inside_row.adults or 0)
+    people_inside_today_members = int(inside_row.members or 0)
     people_inside_today_kids = int(inside_row.kids or 0)
 
     ticket_ids_with_scans = (
@@ -113,14 +123,17 @@ def _build_stats(db: Session) -> DashboardStatsOut:
         )
         timestamps = [s.scanned_at for s in scans if s.scanned_at is not None]
         adult_scanned = sum(1 for s in scans if s.ticket_type == ScanTicketType.adult)
+        member_scanned = sum(1 for s in scans if s.ticket_type == ScanTicketType.member)
         kid_scanned = sum(1 for s in scans if s.ticket_type == ScanTicketType.kid)
         attendees.append(
             DashboardAttendee(
                 ticket_id=ticket.id,
                 full_name=ticket.full_name,
                 adult_tickets=ticket.adult_tickets,
+                member_tickets=ticket.member_tickets,
                 kid_tickets=ticket.kid_tickets,
                 adult_scanned=adult_scanned,
+                member_scanned=member_scanned,
                 kid_scanned=kid_scanned,
                 scan_timestamps=timestamps,
             )
@@ -132,10 +145,12 @@ def _build_stats(db: Session) -> DashboardStatsOut:
         total_sent=total_sent,
         total_collected_paid_jd=total_collected_paid_jd,
         sold_adult_slots_paid=sold_adult_slots_paid,
+        sold_member_slots_paid=sold_member_slots_paid,
         sold_kid_slots_paid=sold_kid_slots_paid,
         sold_slots_total_paid=sold_slots_total_paid,
         people_inside_today=people_inside_today,
         people_inside_today_adults=people_inside_today_adults,
+        people_inside_today_members=people_inside_today_members,
         people_inside_today_kids=people_inside_today_kids,
         attendees=attendees,
         ticket_scanning_enabled=_ticket_scanning_enabled(db),

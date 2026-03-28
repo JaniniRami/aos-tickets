@@ -6,12 +6,11 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import AppState, Scan, ScanTicketType
 from schemas import ScanResultOut, ScanSlotOut, ScanTicketTypeEnum
-from ticket_codes import format_ticket_code, normalize_slot_code
+from ticket_codes import format_ticket_code, normalize_slot_code, scan_type_sort_order
 
 
 def _slot_order(scan: Scan):
-    order = 0 if scan.ticket_type == ScanTicketType.adult else 1
-    return (order, scan.ticket_index)
+    return (scan_type_sort_order(scan.ticket_type.value), scan.ticket_index)
 
 
 def _slots_payload(scans: list) -> list[ScanSlotOut]:
@@ -60,6 +59,9 @@ def scan_slot(slot_ref: str, db: Session = Depends(get_db)):
     adult_scanned = sum(
         1 for s in scans if s.ticket_type == ScanTicketType.adult and s.is_scanned
     )
+    member_scanned = sum(
+        1 for s in scans if s.ticket_type == ScanTicketType.member and s.is_scanned
+    )
     kid_scanned = sum(
         1 for s in scans if s.ticket_type == ScanTicketType.kid and s.is_scanned
     )
@@ -73,6 +75,8 @@ def scan_slot(slot_ref: str, db: Session = Depends(get_db)):
             message="Ticket scanning is turned off",
             adult_tickets=ticket.adult_tickets,
             adult_scanned=adult_scanned,
+            member_tickets=ticket.member_tickets,
+            member_scanned=member_scanned,
             kid_tickets=ticket.kid_tickets,
             kid_scanned=kid_scanned,
             slots=slots_out,
@@ -87,6 +91,8 @@ def scan_slot(slot_ref: str, db: Session = Depends(get_db)):
             message="This ticket was already scanned",
             adult_tickets=ticket.adult_tickets,
             adult_scanned=adult_scanned,
+            member_tickets=ticket.member_tickets,
+            member_scanned=member_scanned,
             kid_tickets=ticket.kid_tickets,
             kid_scanned=kid_scanned,
             slots=slots_out,
@@ -102,6 +108,9 @@ def scan_slot(slot_ref: str, db: Session = Depends(get_db)):
     adult_scanned = sum(
         1 for s in scans if s.ticket_type == ScanTicketType.adult and s.is_scanned
     )
+    member_scanned = sum(
+        1 for s in scans if s.ticket_type == ScanTicketType.member and s.is_scanned
+    )
     kid_scanned = sum(
         1 for s in scans if s.ticket_type == ScanTicketType.kid and s.is_scanned
     )
@@ -113,6 +122,8 @@ def scan_slot(slot_ref: str, db: Session = Depends(get_db)):
         full_name=ticket.full_name,
         adult_tickets=ticket.adult_tickets,
         adult_scanned=adult_scanned,
+        member_tickets=ticket.member_tickets,
+        member_scanned=member_scanned,
         kid_tickets=ticket.kid_tickets,
         kid_scanned=kid_scanned,
         slots=slots_out,

@@ -12,6 +12,7 @@ class TicketStatusEnum(str, Enum):
 
 class ScanTicketTypeEnum(str, Enum):
     adult = "adult"
+    member = "member"
     kid = "kid"
 
 
@@ -29,6 +30,7 @@ class TicketCreate(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=255)
     phone: str = Field(..., min_length=1, max_length=64)
     adult_tickets: int = Field(ge=0, default=0)
+    member_tickets: int = Field(ge=0, default=0)
     kid_tickets: int = Field(ge=0, default=0)
 
 
@@ -56,6 +58,8 @@ class ScanResultOut(BaseModel):
     message: str | None = None
     adult_tickets: int = 0
     adult_scanned: int = 0
+    member_tickets: int = 0
+    member_scanned: int = 0
     kid_tickets: int = 0
     kid_scanned: int = 0
     slots: list[ScanSlotOut] = []
@@ -69,13 +73,16 @@ class TicketRowOut(BaseModel):
     full_name: str
     phone: str
     adult_tickets: int
+    member_tickets: int = 0
     kid_tickets: int
     adult_price_jd: int = 3
+    member_price_jd: int = 10
     kid_price_jd: int = 12
     total_due_jd: int = 0
     status: TicketStatusEnum
     created_at: datetime
     adult_scanned: int = 0
+    member_scanned: int = 0
     kid_scanned: int = 0
     total_slots_scanned: int = 0
     total_slots: int = 0
@@ -83,6 +90,7 @@ class TicketRowOut(BaseModel):
 
 class TicketPricingOut(BaseModel):
     adult_price_jd: int
+    member_price_jd: int
     kid_price_jd: int
 
 
@@ -95,8 +103,10 @@ class DashboardAttendee(BaseModel):
     ticket_id: int
     full_name: str
     adult_tickets: int
+    member_tickets: int = 0
     kid_tickets: int
     adult_scanned: int
+    member_scanned: int = 0
     kid_scanned: int
     scan_timestamps: list[datetime]
 
@@ -105,15 +115,17 @@ class DashboardStatsOut(BaseModel):
     total_registered: int
     total_paid: int
     total_sent: int
-    # Sum of adult×price + kid×price for tickets with status paid or sent
+    # Sum of adult×price + member×price + kid×price for tickets with status paid or sent
     total_collected_paid_jd: int
     # Sum of slot counts on paid orders (matches collected revenue scope)
     sold_adult_slots_paid: int
+    sold_member_slots_paid: int
     sold_kid_slots_paid: int
     sold_slots_total_paid: int
     people_inside_today: int
     # Scans recorded today (GMT+3), by pass type
     people_inside_today_adults: int
+    people_inside_today_members: int
     people_inside_today_kids: int
     attendees: list[DashboardAttendee]
     ticket_scanning_enabled: bool = True

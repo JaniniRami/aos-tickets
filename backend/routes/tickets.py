@@ -18,7 +18,15 @@ from schemas import (
     TicketStatusEnum,
     TicketStatusUpdate,
 )
-from ticket_codes import format_ticket_code, make_slot_code, normalize_slot_code
+from ticket_codes import (
+    format_ticket_code,
+    make_slot_code,
+    normalize_slot_code,
+    scan_type_sort_order,
+)
+
+# Member tier price (JD) — fixed, not from env
+MEMBER_TICKET_PRICE_JD = 10
 from ticket_image import (
     build_scan_url_for_slot,
     generate_ticket_png,
@@ -29,8 +37,7 @@ router = APIRouter(prefix="/tickets", tags=["tickets"])
 
 
 def _slot_sort_key(scan: Scan):
-    type_order = 0 if scan.ticket_type == ScanTicketType.adult else 1
-    return (type_order, scan.ticket_index)
+    return (scan_type_sort_order(scan.ticket_type.value), scan.ticket_index)
 
 
 def _counts_for_ticket(db: Session, ticket: Ticket) -> TicketRowOut:
@@ -38,12 +45,16 @@ def _counts_for_ticket(db: Session, ticket: Ticket) -> TicketRowOut:
     adult_scanned = sum(
         1 for s in scans if s.ticket_type == ScanTicketType.adult and s.is_scanned
     )
+    member_scanned = sum(
+        1 for s in scans if s.ticket_type == ScanTicketType.member and s.is_scanned
+    )
     kid_scanned = sum(
         1 for s in scans if s.ticket_type == ScanTicketType.kid and s.is_scanned
     )
     total_scanned = sum(1 for s in scans if s.is_scanned)
     total_due = (
         ticket.adult_tickets * ticket.adult_price_jd
+        + ticket.member_tickets * ticket.member_price_jd
         + ticket.kid_tickets * ticket.kid_price_jd
     )
     return TicketRowOut(
@@ -52,13 +63,16 @@ def _counts_for_ticket(db: Session, ticket: Ticket) -> TicketRowOut:
         full_name=ticket.full_name,
         phone=ticket.phone,
         adult_tickets=ticket.adult_tickets,
+        member_tickets=ticket.member_tickets,
         kid_tickets=ticket.kid_tickets,
         adult_price_jd=ticket.adult_price_jd,
+        member_price_jd=ticket.member_price_jd,
         kid_price_jd=ticket.kid_price_jd,
         total_due_jd=total_due,
         status=TicketStatusEnum(ticket.status.value),
         created_at=ticket.created_at,
         adult_scanned=adult_scanned,
+        member_scanned=member_scanned,
         kid_scanned=kid_scanned,
         total_slots_scanned=total_scanned,
         total_slots=len(scans),
@@ -76,6 +90,16 @@ def _create_scan_rows(ticket: Ticket) -> list[Scan]:
                 ticket_index=i,
                 is_scanned=False,
                 slot_code=make_slot_code(tid, "adult", i),
+            )
+        )
+    for i in range(1, ticket.member_tickets + 1):
+        rows.append(
+            Scan(
+                ticket=ticket,
+                ticket_type=ScanTicketType.member,
+                ticket_index=i,
+                is_scanned=False,
+                slot_code=make_slot_code(tid, "member", i),
             )
         )
     for i in range(1, ticket.kid_tickets + 1):
@@ -149,17 +173,19 @@ def create_ticket(
     db: Session = Depends(get_db),
     _: str = Depends(get_current_admin),
 ):
-    if body.adult_tickets == 0 and body.kid_tickets == 0:
+    if body.adult_tickets == 0 and body.member_tickets == 0 and body.kid_tickets == 0:
         raise HTTPException(
             status_code=400,
-            detail="At least one adult or kid ticket is required",
+            detail="At least one adult, member, or kid ticket is required",
         )
     ticket = Ticket(
         full_name=body.full_name.strip(),
         phone=body.phone.strip(),
         adult_tickets=body.adult_tickets,
+        member_tickets=body.member_tickets,
         kid_tickets=body.kid_tickets,
         adult_price_jd=settings.adult_ticket_price_jd,
+        member_price_jd=MEMBER_TICKET_PRICE_JD,
         kid_price_jd=settings.kid_ticket_price_jd,
         status=TicketStatus.registered,
     )
@@ -187,6 +213,7 @@ def list_tickets(
 def ticket_pricing(_: str = Depends(get_current_admin)):
     return TicketPricingOut(
         adult_price_jd=settings.adult_ticket_price_jd,
+        member_price_jd=MEMBER_TICKET_PRICE_JD,
         kid_price_jd=settings.kid_ticket_price_jd,
     )
 
@@ -198,10 +225,10 @@ def update_ticket(
     db: Session = Depends(get_db),
     _: str = Depends(get_current_admin),
 ):
-    if body.adult_tickets == 0 and body.kid_tickets == 0:
+    if body.adult_tickets == 0 and body.member_tickets == 0 and body.kid_tickets == 0:
         raise HTTPException(
             status_code=400,
-            detail="At least one adult or kid ticket is required",
+            detail="At least one adult, member, or kid ticket is required",
         )
     ticket = db.get(Ticket, ticket_id)
     if not ticket:
@@ -209,8 +236,10 @@ def update_ticket(
     ticket.full_name = body.full_name.strip()
     ticket.phone = body.phone.strip()
     _adjust_scan_count(db, ticket, ScanTicketType.adult, body.adult_tickets)
+    _adjust_scan_count(db, ticket, ScanTicketType.member, body.member_tickets)
     _adjust_scan_count(db, ticket, ScanTicketType.kid, body.kid_tickets)
     ticket.adult_tickets = body.adult_tickets
+    ticket.member_tickets = body.member_tickets
     ticket.kid_tickets = body.kid_tickets
     db.commit()
     db.refresh(ticket)

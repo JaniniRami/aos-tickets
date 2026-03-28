@@ -6,11 +6,13 @@ from database import (
     engine,
     ensure_app_state_row,
     ensure_scan_slot_codes,
+    ensure_scan_ticket_type_member,
     ensure_ticket_price_columns,
 )
 from routes import auth, dashboard, export, scan, tickets
 
 Base.metadata.create_all(bind=engine)
+ensure_scan_ticket_type_member()
 ensure_ticket_price_columns()
 ensure_scan_slot_codes()
 ensure_app_state_row()

@@ -47,7 +47,18 @@ export default function TicketTable({ rows, onRefresh, onEdit }) {
         <table className="min-w-full text-sm text-left">
           <thead>
             <tr className="border-b border-[#D4C9BE] bg-[#F1EFEC]">
-              {['Order', 'Name', 'Phone', 'Adults', 'Kids', 'Due (JD)', 'Scanned', 'Status', 'Actions'].map(
+              {[
+                'Order',
+                'Name',
+                'Phone',
+                'Adults',
+                'Members',
+                'Kids',
+                'Due (JD)',
+                'Scanned',
+                'Status',
+                'Actions',
+              ].map(
                 (h) => (
                   <th
                     key={h}
@@ -71,6 +82,9 @@ export default function TicketTable({ rows, onRefresh, onEdit }) {
                 <td className="px-4 py-3 text-[#030303]/55 whitespace-nowrap">{r.phone}</td>
                 <td className="px-4 py-3 text-[#030303]/70 tabular-nums">
                   {r.adult_scanned}/{r.adult_tickets}
+                </td>
+                <td className="px-4 py-3 text-[#030303]/70 tabular-nums">
+                  {r.member_scanned ?? 0}/{r.member_tickets ?? 0}
                 </td>
                 <td className="px-4 py-3 text-[#030303]/70 tabular-nums">
                   {r.kid_scanned}/{r.kid_tickets}
