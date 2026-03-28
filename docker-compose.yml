@@ -1,0 +1,52 @@
+# Full stack: Postgres + FastAPI + Vite build behind nginx (/api → backend).
+# Usage: docker compose up --build
+# App: http://localhost:8080  ·  API (direct): http://localhost:8000
+# Set BASE_URL to the public URL used in QR codes (same as users’ browser origin).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nafetha
+    volumes:
+      - aos_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/nafetha
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      BASE_URL: ${BASE_URL:-http://localhost:8080}
+      EVENT_TIMEZONE: ${EVENT_TIMEZONE:-Asia/Amman}
+      ADULT_TICKET_PRICE_JD: ${ADULT_TICKET_PRICE_JD:-3}
+      KID_TICKET_PRICE_JD: ${KID_TICKET_PRICE_JD:-12}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  aos_pgdata:
