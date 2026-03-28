@@ -25,11 +25,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(scan.router)  # public: no admin JWT
 app.include_router(auth.router)
 app.include_router(tickets.router)
 app.include_router(dashboard.router)
 app.include_router(export.router)
-app.include_router(scan.router)
 
 
 @app.get("/health")

@@ -9,12 +9,12 @@ export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
       <Routes>
+        <Route path="/scan/:ticketId" element={<ScanResult />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="attendees" element={<AttendeesPage />} />
         </Route>
-        <Route path="/scan/:ticketId" element={<ScanResult />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

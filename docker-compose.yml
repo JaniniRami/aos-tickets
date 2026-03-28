@@ -1,21 +1,20 @@
 # Full stack: Postgres + FastAPI + Vite build behind nginx.
-# Usage: docker compose up --build
+# Usage: docker compose --env-file ./backend/.env up --build
+# (needed so ${POSTGRES_USER} etc. resolve for backend DATABASE_URL; db also reads backend/.env)
 #
-# VPS: http://46.225.168.215/aos/  ·  API: /aos/api/…  ·  open port 80
+# VPS: / → blank (204); app http://46.225.168.215/aos  ·  API /aos/api/…  ·  port 80
 # BASE_URL must match public app URL (QR codes).
-# ADMIN_USERNAME, ADMIN_PASSWORD, JWT_SECRET: set in backend/.env (loaded via env_file).
+# backend/.env: POSTGRES_*, ADMIN_*, JWT_SECRET, …
 
 services:
   db:
     image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres2026aos
-      POSTGRES_DB: aos
+    env_file:
+      - ./backend/.env
     volumes:
       - aos_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\""]
       interval: 3s
       timeout: 5s
       retries: 10
@@ -29,8 +28,8 @@ services:
     expose:
       - "8000"
     environment:
-      # Overrides backend/.env so the app uses the compose DB service, not localhost.
-      DATABASE_URL: postgresql://postgres:postgres2026aos@db:5432/aos
+      # Same credentials as db service (from backend/.env); host `db` is the compose network name.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       BASE_URL: ${BASE_URL:-http://46.225.168.215/aos}
       EVENT_TIMEZONE: ${EVENT_TIMEZONE:-Asia/Amman}
       ADULT_TICKET_PRICE_JD: ${ADULT_TICKET_PRICE_JD:-3}

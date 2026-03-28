@@ -15,6 +15,12 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+/** No JWT — for public ticket check (`GET /scan/...`) only. */
+export const publicApi = axios.create({
+  baseURL,
+  headers: { 'Content-Type': 'application/json' },
+})
+
 const TOKEN_KEY = 'aos_jwt'
 
 export function getToken() {

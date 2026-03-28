@@ -35,10 +35,15 @@ def _ticket_scanning_enabled(db: Session) -> bool:
     return True if row is None else row.ticket_scanning_enabled
 
 
-@router.get("/scan/{slot_ref:path}", response_model=ScanResultOut)
+@router.get(
+    "/scan/{slot_ref:path}",
+    response_model=ScanResultOut,
+    dependencies=[],
+    openapi_extra={"security": []},
+)
 def scan_slot(slot_ref: str, db: Session = Depends(get_db)):
     """
-    Public scan: URL encodes one physical pass (slot_code), not the buyer order id.
+    Public scan (no JWT): URL encodes one physical pass (slot_code), not the buyer order id.
     """
     code = normalize_slot_code(slot_ref)
     if not code or len(code) < 3:

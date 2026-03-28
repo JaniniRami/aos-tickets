@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import axios from 'axios'
-
-import { resolveApiBaseURL } from '../api'
+import { publicApi } from '../api'
 
 function formatTime(iso) {
   if (!iso) return '—'
@@ -25,8 +23,8 @@ export default function ScanResult() {
       setLoading(true)
       setError('')
       try {
-        const res = await axios.get(
-          `${resolveApiBaseURL()}/scan/${encodeURIComponent(ticketId)}`,
+        const res = await publicApi.get(
+          `/scan/${encodeURIComponent(ticketId)}`,
         )
         if (!cancelled) setData(res.data)
       } catch {
