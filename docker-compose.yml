@@ -19,9 +19,6 @@ services:
       EVENT_TIMEZONE: ${EVENT_TIMEZONE:-Asia/Amman}
       ADULT_TICKET_PRICE_JD: ${ADULT_TICKET_PRICE_JD:-3}
       KID_TICKET_PRICE_JD: ${KID_TICKET_PRICE_JD:-12}
-    depends_on:
-      db:
-        condition: service_healthy
 
   frontend:
     build:
