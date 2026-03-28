@@ -1,31 +1,53 @@
 # Full stack: Postgres + FastAPI + Vite build behind nginx (/api → backend).
 # Usage: docker compose up --build
-# App: http://localhost:8080  ·  API (direct): http://localhost:8000
-# Set BASE_URL to the public URL used in QR codes (same as users’ browser origin).
+#
+# VPS: open ports 80 + 443. HTTPS: https://46.225.168.215/  (API under /api/…)
+# TLS: create ./ssl/fullchain.pem and ./ssl/privkey.pem (e.g. copy from certbot).
+# HTTP on :80 redirects to HTTPS. BASE_URL must stay https:// for QR codes.
 
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres2026aos
+      POSTGRES_DB: aos
+    volumes:
+      - aos_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/nafetha
+      DATABASE_URL: postgresql://postgres:postgres2026aos@db:5432/aos
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      BASE_URL: ${BASE_URL:-http://localhost:8080}
+      BASE_URL: ${BASE_URL:-https://46.225.168.215}
       EVENT_TIMEZONE: ${EVENT_TIMEZONE:-Asia/Amman}
       ADULT_TICKET_PRICE_JD: ${ADULT_TICKET_PRICE_JD:-3}
       KID_TICKET_PRICE_JD: ${KID_TICKET_PRICE_JD:-12}
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - backend
 
