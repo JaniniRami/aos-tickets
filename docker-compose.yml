@@ -1,10 +1,12 @@
 # Full stack: Postgres + FastAPI + Vite build behind nginx.
-# Usage: docker compose --env-file ./backend/.env up --build
-# (needed so ${POSTGRES_USER} etc. resolve for backend DATABASE_URL; db also reads backend/.env)
+# Usage: docker compose up --build
+#
+# backend/.env must define POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB (for db container)
+# and DATABASE_URL with host `db`, same user/password/db (see backend/.env.example).
+# If you change POSTGRES_USER after the first run: docker compose down -v && docker compose up -d
+# (recreate volume) or the new role will not exist.
 #
 # VPS: / → blank (204); app http://46.225.168.215/aos  ·  API /aos/api/…  ·  port 80
-# BASE_URL must match public app URL (QR codes).
-# backend/.env: POSTGRES_*, ADMIN_*, JWT_SECRET, …
 
 services:
   db:
@@ -28,8 +30,7 @@ services:
     expose:
       - "8000"
     environment:
-      # Same credentials as db service (from backend/.env); host `db` is the compose network name.
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      # DATABASE_URL comes from backend/.env (must use host `db` in Docker, not localhost).
       BASE_URL: ${BASE_URL:-http://46.225.168.215/aos}
       EVENT_TIMEZONE: ${EVENT_TIMEZONE:-Asia/Amman}
       ADULT_TICKET_PRICE_JD: ${ADULT_TICKET_PRICE_JD:-3}
