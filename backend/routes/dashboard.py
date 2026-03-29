@@ -39,7 +39,7 @@ def _build_stats(db: Session) -> DashboardStatsOut:
         or 0
     )
 
-    collected_raw = (
+    total_due_raw = (
         db.query(
             func.coalesce(
                 func.sum(
@@ -50,23 +50,19 @@ def _build_stats(db: Session) -> DashboardStatsOut:
                 0,
             )
         )
-        .filter(Ticket.status.in_((TicketStatus.paid, TicketStatus.sent)))
         .scalar()
     )
-    total_collected_paid_jd = int(collected_raw or 0)
+    total_due_all_jd = int(total_due_raw or 0)
 
-    paid_only = Ticket.status == TicketStatus.paid
     slots_row = db.query(
         func.coalesce(func.sum(Ticket.adult_tickets), 0),
         func.coalesce(func.sum(Ticket.member_tickets), 0),
         func.coalesce(func.sum(Ticket.kid_tickets), 0),
-    ).filter(paid_only).one()
-    sold_adult_slots_paid = int(slots_row[0] or 0)
-    sold_member_slots_paid = int(slots_row[1] or 0)
-    sold_kid_slots_paid = int(slots_row[2] or 0)
-    sold_slots_total_paid = (
-        sold_adult_slots_paid + sold_member_slots_paid + sold_kid_slots_paid
-    )
+    ).one()
+    sold_adult_slots = int(slots_row[0] or 0)
+    sold_member_slots = int(slots_row[1] or 0)
+    sold_kid_slots = int(slots_row[2] or 0)
+    sold_slots_total = sold_adult_slots + sold_member_slots + sold_kid_slots
 
     today_local = datetime.now(ZoneInfo(settings.event_timezone)).date()
     inside_row = db.execute(
@@ -143,11 +139,11 @@ def _build_stats(db: Session) -> DashboardStatsOut:
         total_registered=total_registered,
         total_paid=total_paid,
         total_sent=total_sent,
-        total_collected_paid_jd=total_collected_paid_jd,
-        sold_adult_slots_paid=sold_adult_slots_paid,
-        sold_member_slots_paid=sold_member_slots_paid,
-        sold_kid_slots_paid=sold_kid_slots_paid,
-        sold_slots_total_paid=sold_slots_total_paid,
+        total_due_all_jd=total_due_all_jd,
+        sold_adult_slots=sold_adult_slots,
+        sold_member_slots=sold_member_slots,
+        sold_kid_slots=sold_kid_slots,
+        sold_slots_total=sold_slots_total,
         people_inside_today=people_inside_today,
         people_inside_today_adults=people_inside_today_adults,
         people_inside_today_members=people_inside_today_members,

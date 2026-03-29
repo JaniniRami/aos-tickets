@@ -1,41 +1,42 @@
 export default function StatsBar({ stats }) {
   if (!stats) return null
 
-  const collected = Number(stats.total_collected_paid_jd ?? 0)
-  const soldAdults = Number(stats.sold_adult_slots_paid ?? 0)
-  const soldMembers = Number(stats.sold_member_slots_paid ?? 0)
-  const soldKids = Number(stats.sold_kid_slots_paid ?? 0)
-  const soldTotal = Number(stats.sold_slots_total_paid ?? 0)
+  const collected = Number(stats.total_due_all_jd ?? 0)
+  const soldAdults = Number(stats.sold_adult_slots ?? 0)
+  const soldMembers = Number(stats.sold_member_slots ?? 0)
+  const soldKids = Number(stats.sold_kid_slots ?? 0)
+  const soldTotal = Number(stats.sold_slots_total ?? 0)
 
   const cards = [
     {
-      label: 'Collected',
+      label: 'Total due',
       value: `${collected.toLocaleString()} JD`,
       accent: true,
-      sub: 'Adult + member + kid totals, paid or sent orders',
+      sub: 'All orders: registered, paid & sent',
     },
     {
-      label: 'Adults sold (paid)',
+      label: 'Adult passes',
       value: soldAdults.toLocaleString(),
       accent: false,
-      sub: 'Adult passes on paid orders',
+      sub: 'Across all orders',
     },
     {
-      label: 'Members sold (paid)',
+      label: 'Member passes',
       value: soldMembers.toLocaleString(),
       accent: false,
-      sub: 'Member passes on paid orders',
+      sub: 'Across all orders',
     },
     {
-      label: 'Kids sold (paid)',
+      label: 'Kid passes',
       value: soldKids.toLocaleString(),
       accent: false,
-      sub: 'Kid passes on paid orders',
+      sub: 'Across all orders',
     },
     {
-      label: 'Passes sold (paid)',
+      label: 'Passes total',
       value: soldTotal.toLocaleString(),
       accent: true,
+      sub: 'Adult + member + kid, all orders',
     },
   ]
 

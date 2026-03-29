@@ -115,13 +115,13 @@ class DashboardStatsOut(BaseModel):
     total_registered: int
     total_paid: int
     total_sent: int
-    # Sum of adult×price + member×price + kid×price for tickets with status paid or sent
-    total_collected_paid_jd: int
-    # Sum of slot counts on paid orders (matches collected revenue scope)
-    sold_adult_slots_paid: int
-    sold_member_slots_paid: int
-    sold_kid_slots_paid: int
-    sold_slots_total_paid: int
+    # Sum of adult×price + member×price + kid×price for every order (any status)
+    total_due_all_jd: int
+    # Pass counts aggregated across all orders (registered, paid, sent)
+    sold_adult_slots: int
+    sold_member_slots: int
+    sold_kid_slots: int
+    sold_slots_total: int
     people_inside_today: int
     # Scans recorded today (GMT+3), by pass type
     people_inside_today_adults: int
